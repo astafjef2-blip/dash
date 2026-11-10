@@ -1,0 +1,958 @@
+/* Росреестр — единый слой интерфейса. Только представление; без расчётов и источников данных. */
+:root {
+  --ui-brand: var(--rr-blue, #009fe3);
+  --ui-accent: var(--rr-green, #00cc99);
+  --ui-ink: var(--rr-graphite, #4c4d4b);
+  --ui-muted: #667985;
+  --ui-border: var(--rr-line, #dce8e7);
+  --ui-surface: #fff;
+  --ui-surface-soft: #f6fbfc;
+  --ui-radius: 14px;
+  --ui-gap: 14px;
+  --ui-shadow: 0 10px 26px rgba(0, 100, 150, .065);
+  --ui-font-body: 15px;
+  --ui-font-label: 12px;
+  --ui-font-table: 14px;
+}
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+body, button, input, select, textarea {
+  font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+}
+.main, .workspace, .view, .rr-panel, .panel, .rr-page-head, .rr-panel-head,
+.rr-region-section, .rr-page-head > div, .rr-panel-head > div,
+.rr-table-wrap, .rr-heatmap-wrap, .rr-chart {
+  min-width: 0;
+}
+.main {
+  box-sizing: border-box;
+}
+.workspace, .view {
+  width: 100%;
+}
+.rr-page-head h2, .section-head h2 {
+  letter-spacing: -.025em;
+}
+.rr-panel-head h3, .panel-title h3 {
+  font-size: clamp(18px, 1.25vw, 22px) !important;
+  line-height: 1.3 !important;
+  font-weight: 750;
+}
+.rr-kicker, .eyebrow, .selected-label {
+  font-size: var(--ui-font-label) !important;
+  line-height: 1.4;
+}
+.rr-page-head p, .section-head p, .rr-panel-head p, .panel-title p {
+  color: var(--ui-muted);
+  font-size: clamp(13px, .85vw, 15px) !important;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+.rr-panel, .panel {
+  border-radius: var(--ui-radius);
+}
+.rr-top-leader, .rr-signal-card, .rr-achievement-card,
+.direction-card, .indicator-card, .indicator-kpi {
+  border-radius: var(--ui-radius);
+}
+.rr-panel, .panel, .direction-card, .indicator-card {
+  overflow-wrap: break-word;
+}
+.rr-top-leader .rr-leader-copy > strong, .rr-achievement-copy > strong,
+.rr-region-state > div > span, .rr-benchmark span,
+.rr-explain-facts > span, .rr-signal-card strong {
+  overflow-wrap: break-word;
+}
+.rr-top-leader .rr-leader-copy > strong, .indicator-name {
+  font-size: clamp(14px, .9vw, 16px) !important;
+}
+.rr-top-leader .rr-leader-copy > span, .rr-achievement-copy > small,
+.rr-page-head small, .rr-panel-head small, .rr-kicker,
+.rr-region-state small, .rr-context > span, .rr-quality-tag {
+  font-size: clamp(12px, .74vw, 14px) !important;
+  line-height: 1.4;
+}
+.rr-region-state strong, .rr-top-score, .rr-movement-kpi > strong,
+.rr-achievement-card b, .indicator-kpi strong {
+  font-variant-numeric: tabular-nums;
+}
+/* Текст и числовые значения во всех реестрах имеют общий масштаб. */
+:is(.rr-table,.data-table,.rr-heatmap) {
+  font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+  font-size: var(--ui-font-table) !important;
+  font-variant-numeric: tabular-nums;
+}
+:is(.rr-table,.data-table,.rr-heatmap) :is(th,td) {
+  padding: 11px 12px;
+  font-size: var(--ui-font-table) !important;
+  line-height: 1.45;
+  border-color: var(--ui-border);
+  vertical-align: middle;
+}
+:is(.rr-table,.data-table,.rr-heatmap) thead th {
+  font-size: 12px !important;
+  font-weight: 750;
+  letter-spacing: .02em;
+  color: #426274;
+  background-color: #f0f8fb;
+}
+:is(.rr-table,.data-table) tbody tr:hover {
+  background-color: #eff8fc;
+}
+:is(.rr-table,.data-table) tbody td:not(:first-child) {
+  font-variant-numeric: tabular-nums;
+}
+:is(.rr-table,.data-table) tbody td strong {
+  font-weight: 750;
+}
+.rr-table-wrap, .table-wrap, .rr-heatmap-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.rr-table-wrap > table, .table-wrap > table, .rr-heatmap-wrap > table {
+  width: max-content;
+  min-width: 100%;
+}
+.rr-table-wrap > table thead th, .rr-heatmap-wrap > table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.rr-heatmap thead th:first-child, .rr-heatmap tbody th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #f6fbfc;
+  box-shadow: 1px 0 0 var(--ui-border);
+}
+.rr-heatmap thead th:first-child {
+  z-index: 4;
+  background: #f0f8fb;
+}
+.rr-heatmap tbody th strong {
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-size: 13px !important;
+}
+.rr-sort-button, .rr-table thead th button {
+  min-height: 40px;
+  font-weight: 750;
+}
+/* Навигация и фильтры: читаемость и предсказуемые сенсорные области. */
+.sidebar .nav-btn {
+  font-size: 14px !important;
+  line-height: 1.36;
+}
+.sidebar .nav-group-label, .sidebar-version {
+  font-size: 12px !important;
+}
+.sidebar .sidebar-action {
+  font-size: 13px !important;
+}
+.navigation-toggle, .mobile-filter-toggle, .ghost-btn, .fullscreen-btn,
+.rr-link, .rr-text-link, .rr-region-nav button, .rr-sort-button {
+  touch-action: manipulation;
+}
+.mobile-filter-toggle, .navigation-toggle, .ghost-btn, .rr-link {
+  min-height: 44px;
+}
+.filter-group input, .filter-group select, .rr-region-head select {
+  font-size: 15px !important;
+}
+/* Графики: не выдавливать сетку, сохранять всплывающие подсказки и место для легенды. */
+.rr-chart {
+  width: 100%;
+  max-width: 100%;
+}
+.rr-chart canvas {
+  max-width: 100%;
+}
+.rr-chart-short {
+  min-height: 180px;
+}
+.rr-status-guide-grid, .rr-context, .rr-state-grid, .rr-bottom-grid,
+.rr-region-state, .rr-cause-grid, .rr-region-two, .rr-action-list,
+.rr-signal-grid, .rr-achievement-grid {
+  min-width: 0;
+}
+.rr-status, .rr-quality-tag, .rr-badge {
+  white-space: normal;
+}
+/* Контекст карточки всегда находится над содержимым при прокрутке. */
+#regionView .region-sticky-context {
+  max-width: 100%;
+}
+#regionView .region-sticky-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.rr-region-nav {
+  scrollbar-width: thin;
+}
+/* Местные цвета состояний и границы шкал намеренно НЕ переопределяются. */
+@media (min-width: 2200px) {
+  .main {
+    max-width: min(100%, 3420px) !important;
+    padding-inline: clamp(30px, 1.9vw, 74px) !important;
+  }
+  .main > * {
+    max-width: 100% !important;
+  }
+  :root {
+    --ui-font-table: 16px;
+  }
+  .sidebar .nav-btn {
+    font-size: 16px !important;
+  }
+  .rr-panel, .panel {
+    padding: clamp(22px, 1vw, 32px) !important;
+  }
+  .rr-chart {
+    height: clamp(380px, 15vw, 480px);
+  }
+  .rr-chart-short {
+    height: 230px;
+  }
+  .rr-panel-head h3 {
+    font-size: clamp(21px, 1.15vw, 28px) !important;
+  }
+  .rr-page-head p, .section-head p, .rr-panel-head p {
+    font-size: clamp(16px, .72vw, 19px) !important;
+  }
+  .rr-top-leader .rr-leader-copy > strong {
+    font-size: 18px !important;
+  }
+  .rr-top-leader .rr-leader-copy > span {
+    font-size: 15px !important;
+  }
+  .rr-ranking-panel .rr-rating-table td {
+    min-height: 66px;
+  }
+  .rr-geo-stage {
+    min-height: 690px;
+  }
+}
+@media (min-width: 1025px) and (max-width: 1799px) {
+  .main {
+    padding-top: 18px !important;
+  }
+  .topbar {
+    padding: 18px 24px 20px !important;
+    margin-bottom: 12px !important;
+  }
+  .topbar h1 {
+    font-size: clamp(26px, 2.15vw, 34px) !important;
+    max-width: 100%;
+  }
+  .topbar-copy {
+    flex-basis: 520px !important;
+  }
+  .topbar p {
+    margin: 7px 0;
+  }
+  .rr-top-leader {
+    padding: 12px;
+  }
+  .rr-top-leader .rr-top-score {
+    font-size: 30px;
+  }
+}
+@media (max-width: 1024px) {
+  .main {
+    max-width: 100%;
+  }
+  .topbar {
+    margin-top: 0 !important;
+  }
+  .sidebar {
+    width: 100%;
+  }
+  .sidebar .navigation-toggle {
+    min-width: 90px;
+  }
+  .sidebar .nav-btn {
+    font-size: 14px !important;
+  }
+  .sidebar.menu-open .sidebar-nav {
+    max-height: min(70dvh, 630px);
+    overflow-y: auto;
+  }
+  :is(.rr-table,.data-table,.rr-heatmap) {
+    --ui-font-table: 13px;
+  }
+  .rr-region-nav button {
+    white-space: nowrap;
+  }
+  .rr-chart {
+    min-height: 300px;
+  }
+  .rr-heatmap thead th:first-child, .rr-heatmap tbody th:first-child {
+    min-width: 160px;
+  }
+}
+@media (max-width: 700px) {
+  .main {
+    padding: 14px 12px 28px !important;
+  }
+  .sidebar .brand-title {
+    font-size: 20px !important;
+  }
+  .topbar {
+    padding: 17px 17px 18px !important;
+    border-radius: 0 28px 28px 0 !important;
+  }
+  .topbar h1 {
+    font-size: clamp(23px, 6vw, 30px) !important;
+    line-height: 1.16 !important;
+  }
+  .topbar p, .data-freshness {
+    font-size: 13px !important;
+  }
+  .topbar-actions {
+    flex-basis: auto !important;
+  }
+  .topbar .fullscreen-btn {
+    min-height: 44px;
+  }
+  .rr-page-head h2, .section-head h2 {
+    font-size: clamp(22px, 6vw, 29px) !important;
+  }
+  .rr-panel, .panel {
+    padding: 14px !important;
+  }
+  .rr-top-leader .rr-top-score {
+    font-size: 31px !important;
+  }
+  .rr-top-leader .rr-leader-copy > strong {
+    font-size: 15px !important;
+  }
+  .rr-status-guide-grid, .rr-cause-grid, .rr-region-two, .rr-action-list {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .rr-chart, #rrOverviewFoChart, #rrFoChart, #rrDirectionZones, #rrOverviewDirectionZones {
+    height: 340px;
+  }
+  .rr-heatmap tbody th strong {
+    font-size: 13px !important;
+  }
+  .rr-region-section {
+    scroll-margin-top: calc(var(--navigation-offset) + 70px);
+  }
+  .rr-region-head-actions select {
+    max-width: 100%;
+  }
+  .rr-context > span {
+    max-width: 100%;
+  }
+  .ai-context-bar select, .ai-composer textarea {
+    font-size: 16px !important;
+  }
+  /* Широкие таблицы прокручиваются только внутри своих контейнеров. */
+  .rr-table-wrap, .table-wrap, .rr-heatmap-wrap {
+    width: 100%;
+  }
+  #rrRiskTable {
+    min-width: 950px;
+  }
+  .rr-heatmap {
+    min-width: 1120px;
+  }
+  .rr-rating-table tbody tr {
+    min-width: 0;
+  }
+  .rr-rating-table td:nth-child(6)::before {
+    font-size: 12px;
+  }
+  #mapView .rr-geo-caption {
+    font-size: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .sidebar.menu-open .sidebar-nav {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+  .topbar h1 {
+    font-size: 24px !important;
+  }
+  .rr-region-state {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .rr-region-state > div {
+    padding: 12px 10px;
+  }
+  .rr-region-state strong {
+    font-size: 19px !important;
+  }
+  .rr-top-leader {
+    min-height: 0;
+  }
+  #regionView .region-sticky-context {
+    padding: 9px 10px;
+  }
+  #regionView .region-sticky-copy {
+    flex: 1 1 auto;
+  }
+  .rr-region-nav {
+    max-width: calc(100vw - 24px);
+  }
+  .ai-hero h2 {
+    font-size: 25px !important;
+  }
+}
+@media print {
+  .rr-table-wrap, .rr-heatmap-wrap {
+    overflow: visible;
+  }
+  .rr-region-nav {
+    position: static;
+  }
+  #regionView .region-sticky-context {
+    display: none !important;
+  }
+}
+@media (min-width: 3000px) {
+  :root {
+    --ui-font-label: 15px;
+    --ui-font-table: 18px;
+  }
+  .main {
+    font-size: 18px !important;
+  }
+  .topbar h1 {
+    font-size: 46px !important;
+  }
+  .topbar p, .data-freshness {
+    font-size: 17px !important;
+  }
+  .rr-kicker, .eyebrow {
+    font-size: 15px !important;
+  }
+  .rr-top-leader .rr-leader-copy > strong {
+    font-size: 21px !important;
+  }
+  .rr-top-leader .rr-leader-copy > span {
+    font-size: 16px !important;
+  }
+  .rr-top-leader .rr-top-score {
+    font-size: 46px !important;
+  }
+  .rr-achievement-copy > strong, .rr-achievement-heading h3 {
+    font-size: 19px !important;
+  }
+  .rr-achievement-copy > small {
+    font-size: 16px !important;
+  }
+  .rr-panel-head h3 {
+    font-size: 26px !important;
+  }
+}
+/* Compact controls and review annotations, October 2026. */
+.main {
+  position: relative;
+}
+.dashboard-tools {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.dashboard-tools .mobile-filter-toggle {
+  position: static !important;
+  top: auto !important;
+  width: auto !important;
+  margin: 0 !important;
+  min-height: 44px;
+}
+.dashboard-tools .fullscreen-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 10px;
+  justify-content: center;
+}
+.dashboard-tools .fullscreen-btn > span:last-child {
+  display: none;
+}
+.app[data-view="overview"] .topbar {
+  display: block !important;
+  padding: 18px 22px !important;
+  min-height: 0 !important;
+  margin-bottom: 14px !important;
+}
+.topbar-actions:has(> input:only-child) {
+  display: none !important;
+}
+.main .filters {
+  position: static !important;
+  max-height: none;
+  margin: 0 0 14px !important;
+}
+.sidebar-version .signature-copy strong {
+  color: var(--ui-brand) !important;
+}
+.rr-status-guide > summary {
+  cursor: pointer;
+  color: var(--ui-brand);
+  font-weight: 700;
+  min-height: 24px;
+}
+.rr-status-guide-body {
+  margin-top: 16px;
+}
+.rr-comparability-card {
+  position: relative;
+  cursor: help;
+}
+#regionDashboard .rr-region-state {
+  overflow: visible;
+}
+#regionDashboard .rr-comparability-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 70;
+  width: 340px;
+  max-width: calc(100vw - 48px);
+  padding: 14px 16px;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ui-ink);
+  font-size: 13px !important;
+  line-height: 1.55;
+  box-shadow: 0 10px 30px rgba(0,70,110,.18);
+}
+#regionDashboard .rr-comparability-card:is(:hover,:focus,:focus-within) .rr-comparability-tooltip {
+  display: block;
+}
+.rr-comparability-card:focus-visible {
+  outline: 2px solid var(--ui-brand);
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .app[data-view="overview"] .topbar {
+    padding: 16px 18px !important;
+  }
+}
+@media print {
+  .dashboard-tools {
+    display: none !important;
+  }
+}
+/* Keep explanatory text readable above the card, including keyboard focus. */
+#regionDashboard .rr-comparability-tooltip {
+  top: auto;
+  bottom: calc(100% + 8px);
+  max-height: 60dvh;
+  overflow-y: auto;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+/* Shared controls live in navigation, without a row above each page. */
+#viewBackButton, #regionBackButton {
+  display: none !important;
+}
+.sidebar .dashboard-tools {
+  position: static !important;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  gap: 6px;
+  margin: 0 0 12px !important;
+}
+.sidebar .dashboard-tools .fullscreen-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px !important;
+  padding: 7px;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+.sidebar .dashboard-tools .mobile-filter-toggle {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 13px;
+  border-radius: 9px;
+}
+@media (max-width: 1024px) {
+  .sidebar {
+    grid-template-columns: minmax(0,1fr) auto auto !important;
+    column-gap: 8px;
+  }
+  .sidebar .dashboard-tools {
+    margin: 0 !important;
+  }
+  .sidebar .dashboard-tools .mobile-filter-toggle {
+    width: 36px !important;
+    min-width: 36px;
+    padding: 8px;
+  }
+  .sidebar .dashboard-tools .mobile-filter-toggle > span:last-child {
+    display: none;
+  }
+}
+/* Overview actions align with its title; other views expose them in the menu. */
+#overviewDashboard > .rr-page-head {
+  align-items: center;
+  gap: 12px;
+}
+#overviewDashboard > .rr-page-head > div:first-child {
+  flex: 1 1 180px;
+}
+#overviewDashboard .dashboard-tools {
+  position: static;
+  display: flex;
+  flex: 0 0 auto;
+  margin: 0;
+  gap: 6px;
+}
+.dashboard-tools .fullscreen-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px !important;
+  padding: 7px;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+#overviewDashboard .mobile-filter-toggle {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 13px;
+  border-radius: 9px;
+}
+.sidebar-bottom .dashboard-tools {
+  justify-content: flex-start;
+  margin: 0 0 8px !important;
+}
+@media (max-width: 1024px) {
+  .sidebar {
+    grid-template-columns: minmax(0,1fr) auto !important;
+  }
+  .sidebar-bottom .dashboard-tools .mobile-filter-toggle {
+    width: auto !important;
+  }
+  .sidebar-bottom .dashboard-tools .mobile-filter-toggle > span:last-child {
+    display: inline;
+  }
+}
+@media (max-width: 480px) {
+  #overviewDashboard > .rr-page-head {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  #overviewDashboard > .rr-page-head > div:first-child {
+    flex: 1 1 auto;
+  }
+  #overviewDashboard .mobile-filter-toggle {
+    width: 36px !important;
+    padding: 8px;
+  }
+  #overviewDashboard .mobile-filter-toggle > span:last-child {
+    display: none;
+  }
+}
+/* Shared title-row controls on every dashboard page. */
+.has-dashboard-tools:is(.rr-page-head,.section-head), .dashboard-heading-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.has-dashboard-tools:is(.rr-page-head,.section-head) > div:first-child {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.has-dashboard-tools > .dashboard-tools {
+  position: static;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+.dashboard-heading-row h2 {
+  flex: 1;
+  min-width: 0;
+}
+.dashboard-tools .mobile-filter-toggle {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 13px;
+  border-radius: 9px;
+}
+body:has(:is(#rankingView,#combinedRankingView,#riskView,#regionView):not(.hidden)) #mobileFiltersToggle {
+  display: inline-flex !important;
+}
+body:has(:is(#rankingView,#combinedRankingView,#riskView,#regionView):not(.hidden)) #dashboardFilters.mobile-open {
+  display: grid !important;
+}
+#mapView .rr-geo-wrap {
+  position: relative;
+}
+#mapView .rr-geo-wrap > .dashboard-tools {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  margin: 0;
+  padding: 4px;
+  background: rgba(255,255,255,.97);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+}
+#mapView .rr-geo-controls {
+  top: 68px;
+}
+@media (max-width: 480px) {
+  .has-dashboard-tools:is(.rr-page-head,.section-head) {
+    gap: 8px;
+  }
+  .has-dashboard-tools > .dashboard-tools .mobile-filter-toggle {
+    width: 36px !important;
+    min-width: 36px;
+    padding: 8px;
+  }
+  .has-dashboard-tools > .dashboard-tools .mobile-filter-toggle > span:last-child {
+    display: none;
+  }
+  .has-dashboard-tools:is(.rr-page-head,.section-head) > div:first-child {
+    flex: 1 1 180px;
+  }
+}
+#rrRegionBack {
+  display: none !important;
+}
+#regionDashboard .rr-comparability-tooltip {
+  pointer-events: none;
+}
+@media (max-width: 480px) {
+  .has-dashboard-tools:is(.rr-page-head,.section-head) > div:first-child {
+    flex: 1 1 0;
+  }
+  .has-dashboard-tools:is(.rr-page-head,.section-head) > .dashboard-tools {
+    order: 1;
+  }
+  .has-dashboard-tools:is(.rr-page-head,.section-head) > .rr-link,
+ .has-dashboard-tools > .rr-region-head-actions {
+    order: 2;
+    flex-basis: 100%;
+  }
+}
+/* Assistant: actions above the mode card in the right column. */
+#assistantDashboard .ai-hero {
+  grid-template-columns: minmax(0,1fr) minmax(220px,320px);
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 16px 20px;
+}
+#assistantDashboard .ai-hero > div:first-child {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  min-width: 0;
+}
+#assistantDashboard .ai-hero > .dashboard-tools {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  margin: 0;
+}
+#assistantDashboard .ai-mode-card {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  margin-top: 14px;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  #assistantDashboard .ai-hero {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: auto auto;
+  }
+  #assistantDashboard .ai-hero > div:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    padding-top: 44px;
+  }
+  #assistantDashboard .ai-hero > .dashboard-tools {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+  }
+  #assistantDashboard .ai-mode-card {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 8px;
+  }
+}
+/* Readable presentation on large monitors and 4K screens. */
+@media (min-width: 2200px) {
+  .sidebar .nav-btn {
+    font-size: 18px !important;
+    min-height: 60px !important;
+  }
+  .dashboard-tools .mobile-filter-toggle {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .dashboard-tools .fullscreen-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px !important;
+  }
+  .topbar p, .data-freshness {
+    font-size: 18px !important;
+  }
+}
+@media (min-width: 3000px) {
+  .app, .app.sidebar-collapsed {
+    grid-template-columns: 360px minmax(0,1fr) !important;
+  }
+  .sidebar {
+    padding: 26px 22px !important;
+  }
+  .sidebar .nav-btn {
+    font-size: 22px !important;
+    min-height: 72px !important;
+  }
+  .sidebar .nav-group-label, .sidebar-version, .sidebar .sidebar-action {
+    font-size: 18px !important;
+  }
+  .sidebar .nav-btn .nav-icon {
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+  }
+  .sidebar .nav-template-icon {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .main {
+    font-size: 22px !important;
+  }
+  .topbar h1 {
+    font-size: 54px !important;
+    max-width: 1800px;
+  }
+  .topbar p, .data-freshness {
+    font-size: 22px !important;
+  }
+  .rr-page-head h2, .section-head h2, #assistantDashboard .ai-hero h2 {
+    font-size: 46px !important;
+  }
+  .rr-panel-head h3, .panel-title h3 {
+    font-size: 30px !important;
+  }
+  .rr-page-head p, .section-head p, .rr-panel-head p, .panel-title p,
+ .rr-top-leader .rr-leader-copy > span, .rr-achievement-copy > small {
+    font-size: 20px !important;
+  }
+  .rr-kicker, .eyebrow, .rr-viz-title, .rr-signal-card > span, .rr-region-state > div > span {
+    font-size: 18px !important;
+  }
+  .rr-top-leader .rr-leader-copy > strong, .rr-achievement-copy > strong {
+    font-size: 24px !important;
+  }
+  .rr-top-leader .rr-top-score {
+    font-size: 60px !important;
+  }
+  .rr-region-state strong {
+    font-size: 34px !important;
+  }
+  .rr-region-state small, .rr-page-head small, .rr-quality-tag, .rr-context > span {
+    font-size: 18px !important;
+  }
+  :root {
+    --ui-font-table: 21px;
+  }
+  :is(.rr-table,.data-table,.rr-heatmap) thead th {
+    font-size: 18px !important;
+  }
+  .rr-sort-button, .rr-link, .ghost-btn, .dashboard-tools .mobile-filter-toggle,
+ .filter-group input, .filter-group select, .rr-region-head select {
+    font-size: 20px !important;
+  }
+  .rr-chart {
+    height: 480px;
+  }
+  .rr-chart-short {
+    height: 260px;
+  }
+  #assistantDashboard .ai-hero {
+    grid-template-columns: minmax(0,1fr) minmax(320px,480px);
+  }
+  .ai-bubble, .ai-hero p, .ai-context-bar select, .ai-composer textarea {
+    font-size: 22px !important;
+  }
+  .ai-mode-card strong, .ai-context-stat strong, .ai-suggestions h3 {
+    font-size: 22px !important;
+  }
+  .ai-mode-card small, .ai-context-stat span, .ai-suggestions > button, .ai-tip p, .ai-disclaimer {
+    font-size: 18px !important;
+  }
+  .direction-card .dir-name, .indicator-name {
+    font-size: 22px !important;
+  }
+  .indicator-stats, .direction-card .dir-meta, .direction-card .dir-no {
+    font-size: 18px !important;
+  }
+  .direction-card .dir-value, .indicator-kpi strong {
+    font-size: 36px !important;
+  }
+  .dashboard-tools .fullscreen-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px !important;
+  }
+  .dashboard-tools .mobile-filter-toggle {
+    min-height: 48px;
+  }
+  #mapView .rr-geo-caption {
+    font-size: 20px;
+  }
+  #mapView .rr-geo-controls {
+    top: 84px;
+  }
+}
+@media (pointer: coarse) {
+  .dashboard-tools .fullscreen-btn, .has-dashboard-tools .mobile-filter-toggle,
+ #overviewDashboard .mobile-filter-toggle {
+    min-width: 44px;
+    min-height: 44px !important;
+    height: 44px;
+  }
+}
+/* An explicit width prevents aspect-ratio + min-height from widening the map. */
+#mapView .rr-geo-stage {
+  width: 100%;
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  #mapView .rr-geo-stage {
+    height: 300px;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+  #mapView .rr-geo-svg {
+    height: 100%;
+  }
+  #mapView .rr-geo-controls {
+    display: flex;
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+  }
+}
